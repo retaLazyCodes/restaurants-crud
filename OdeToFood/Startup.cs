@@ -1,40 +1,51 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OdeToFood.Data;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace OdeToFood
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
+            _env = env;
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
-
+        private readonly IWebHostEnvironment _env;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
-            
-            services.AddDbContextPool<OdeToFoodDbContext>(options =>
+            if (_env.IsProduction())
             {
-                options.UseMySql(Configuration.GetConnectionString("OdeToFoodDB"), serverVersion)
-                    .EnableSensitiveDataLogging() // <-- These two calls are optional but help
-                    .EnableDetailedErrors(); // <-- with debugging (remove for production).
-            });
+                var connectionString = Environment.GetEnvironmentVariable("OdeToFoodDBProduction");
+                services.AddDbContextPool<OdeToFoodDbContext>(options =>
+                {
+                    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                        .EnableSensitiveDataLogging() // <-- These two calls are optional but help
+                        .EnableDetailedErrors(); // <-- with debugging (remove for production).
+                });
+            }
+            else
+            {
+                var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
+            
+                services.AddDbContextPool<OdeToFoodDbContext>(options =>
+                {
+                    options.UseMySql(Configuration.GetConnectionString("OdeToFoodDB"), serverVersion)
+                        .EnableSensitiveDataLogging() // <-- These two calls are optional but help
+                        .EnableDetailedErrors(); // <-- with debugging (remove for production).
+                });
+            }
+            
             // services.AddSingleton<IRestaurantData, InMemoryRestaurantData>();
             services.AddScoped<IRestaurantData, SqlRestaurantData>();
             services.AddRazorPages();

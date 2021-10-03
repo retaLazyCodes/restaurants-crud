@@ -4,6 +4,18 @@
     <ProjectReference Include="..\OdeToFood.Data\OdeToFood.Data.csproj" />
     <ProjectReference Include="..\OdeToFood.Core\OdeToFood.Core.csproj" />
   </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="ComputeFilesToPublish">
+    <Exec Command="npm install" />
+  </Target>
+
+  <Target Name="PrePublishTarget" AfterTargets="Publish">
+    <Exec Command="dotnet ef database update" />
+  </Target>
+  
+  <ItemGroup>
+    <Content Include="node_modules/**" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.10">
@@ -15,6 +27,18 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Pages\Components\RestaurantCount\Default.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="node_modules\**" />
   </ItemGroup>
 
   <PropertyGroup>
