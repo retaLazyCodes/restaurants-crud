@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,15 @@ namespace OdeToFood
         {
             if (_env.IsProduction())
             {
+                services.AddHttpsRedirection(options => { options.HttpsPort = 443; });
+                services.Configure<ForwardedHeadersOptions>(options =>
+                {
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                    options.ForwardedHeaders =
+                        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                });
+                
                 var connectionString = Environment.GetEnvironmentVariable("OdeToFoodDBProduction");
                 services.AddDbContextPool<OdeToFoodDbContext>(options =>
                 {
@@ -64,6 +74,9 @@ namespace OdeToFood
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
+                app
+                    .UseForwardedHeaders()
+                    .UseHttpsRedirection();
             }
 
             app.UseHttpsRedirection();
