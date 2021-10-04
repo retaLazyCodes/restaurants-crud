@@ -25,7 +25,7 @@
 
 ## view project
 
-[OdeToFood app](reta-restaurants2.herokuapp.com/)
+[OdeToFood app](https://reta-restaurants2.herokuapp.com)
 
 ## Contact
 
